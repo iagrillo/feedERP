@@ -10,6 +10,10 @@ Future<void> main() async {
   await Supabase.initialize(
     url: 'https://yhhnawlhcjbgliramtyc.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloaG5hd2xoY2piZ2xpcmFtdHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjg3NTgsImV4cCI6MjA5Njk0NDc1OH0.nau9Qp9MdtwPjpWQzJnzVrn6cG8BPYCNu59zY0LG8KA',
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+      autoRefreshToken: true,
+    ),
   );
 
   runApp(const ProviderScope(child: ErpApp()));

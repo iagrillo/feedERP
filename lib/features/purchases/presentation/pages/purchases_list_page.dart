@@ -29,7 +29,7 @@ class PurchasesListPage extends ConsumerWidget {
         AppBar(
           title: const Text('Purchases'),
           actions: [
-            if (user?.isAdmin == false)
+            if (user != null)
               Padding(
                 padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
                 child: ElevatedButton.icon(
@@ -37,7 +37,7 @@ class PurchasesListPage extends ConsumerWidget {
                   label: const Text('Record Purchase'),
                   style: ElevatedButton.styleFrom(minimumSize: Size.zero,
                       padding: const EdgeInsets.symmetric(horizontal: 16)),
-                  onPressed: () => context.go('/branch/purchases/create'),
+                  onPressed: () => context.go(user?.isAdmin == true ? '/admin/purchases/create' : '/branch/purchases/create'),
                 ),
               ),
           ],

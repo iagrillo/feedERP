@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:erp_app/core/utils/user_role.dart';
@@ -53,7 +53,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/admin/products',       builder: (_, __) => const ProductsPage()),
           GoRoute(path: '/admin/accounting',     builder: (_, __) => const AccountingPage()),
           GoRoute(path: '/admin/sales',          builder: (_, __) => const SalesListPage()),
-          GoRoute(path: '/admin/purchases',      builder: (_, __) => const PurchasesListPage()),
+          GoRoute(path: '/admin/purchases', builder: (_, __) => const PurchasesListPage()),
+          GoRoute(path: '/admin/purchases/create', builder: (_, __) => const CreatePurchasePage()),
           GoRoute(path: '/admin/transfers',      builder: (_, __) => const TransfersPage()),
         ],
       ),

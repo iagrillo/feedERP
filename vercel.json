@@ -1,0 +1,16 @@
+﻿{
+  "buildCommand": "flutter build web --release --no-pub",
+  "outputDirectory": "build/web",
+  "framework": "other",
+  "env": {
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key"
+  },
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}

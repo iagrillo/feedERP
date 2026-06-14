@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ERP App",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://yhhnawlhcjbgliramtyc.supabase.co",
+        "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloaG5hd2xoY2piZ2xpcmFtdHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjg3NTgsImV4cCI6MjA5Njk0NDc1OH0.nau9Qp9MdtwPjpWQzJnzVrn6cG8BPYCNu59zY0LG8KA"
+      ]
+    }
+  ]
+}

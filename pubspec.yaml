@@ -1,0 +1,53 @@
+name: erp_app
+description: Multi-branch Animal Feed ERP
+
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Supabase
+  supabase_flutter: ^2.5.0
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # UI
+  flutter_screenutil: ^5.9.0
+  cached_network_image: ^3.3.1
+  fl_chart: ^0.67.0
+  data_table_2: ^2.5.12
+  shimmer: ^3.0.0
+  toastification: ^2.1.0
+
+  # Utils
+  intl: ^0.19.0
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  uuid: ^4.4.0
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  riverpod_generator: ^2.4.3
+  build_runner: ^2.4.9
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/

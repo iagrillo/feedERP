@@ -1,7 +1,4 @@
 ﻿{
-    "name":  "feedERP",
-    "version":  "1.0.0",
-    "scripts":  {
-                    "build":  "bash build.sh"
-                }
+  "name": "feedERP",
+  "version": "1.0.0"
 }

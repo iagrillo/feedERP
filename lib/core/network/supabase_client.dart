@@ -1,15 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Regular anon client — used everywhere
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
-// Admin client with service role key — used only for user creation
 final adminSupabaseClientProvider = Provider<SupabaseClient>((ref) {
   return SupabaseClient(
     'https://yhhnawlhcjbgliramtyc.supabase.co',
-    'YOUR_SERVICE_ROLE_KEY_HERE',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloaG5hd2xoY2piZ2xpcmFtdHljIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTM2ODc1OCwiZXhwIjoyMDk2OTQ0NzU4fQ.umrnm4VptEwM94vkg7R-7QT-HDuSDHKZsZXzj5yZL1c
+',
   );
 });

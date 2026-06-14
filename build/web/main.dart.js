@@ -47745,7 +47745,7 @@ s===$&&A.a()
 return s},
 $S:215}
 A.aK7.prototype={
-$1(a){return A.aVl("","",null,B.Ey,null,null,B.oE,B.oG,B.oJ)},
+$1(a){return A.aVl("https://yhhnawlhcjbgliramtyc.supabase.co","YOUR_SERVICE_ROLE_KEY_HERE",null,B.Ey,null,null,B.oE,B.oG,B.oJ)},
 $S:215}
 A.aLB.prototype={
 $1(a){var s=null,r=a.bw($.fG(),t.c),q=t.yo

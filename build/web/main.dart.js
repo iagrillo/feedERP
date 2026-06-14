@@ -8610,7 +8610,7 @@ var $async$aL_=A.K(function(a,b){if(a===1)return A.G(b,r)
 for(;;)switch(s){case 0:if($.a3==null)A.Wf()
 $.a3.toString
 s=2
-return A.C(A.ata("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloaG5hd2xoY2piZ2xpcmFtdHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjg3NTgsImV4cCI6MjA5Njk0NDc1OH0.nau9Qp9MdtwPjpWQzJnzVrn6cG8BPYCNu59zY0LG8KA","https://yhhnawlhcjbgliramtyc.supabase.co"),$async$aL_)
+return A.C(A.ata("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloaG5hd2xoY2piZ2xpcmFtdHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjg3NTgsImV4cCI6MjA5Njk0NDc1OH0.nau9Qp9MdtwPjpWQzJnzVrn6cG8BPYCNu59zY0LG8KA",B.L9,"https://yhhnawlhcjbgliramtyc.supabase.co"),$async$aL_)
 case 2:if($.a3==null)A.Wf()
 q=$.a3
 q.toString
@@ -30811,35 +30811,34 @@ agB:function agB(){},
 arN:function arN(a){this.b=a},
 arM:function arM(a){this.a=a
 this.b=$},
-ata(a,b){var s=0,r=A.J(t._k),q,p,o,n,m,l,k,j
-var $async$ata=A.K(function(c,d){if(c===1)return A.G(d,r)
-for(;;)switch(s){case 0:j=$.me()
-if(j.a){$.aQG().b7(B.ds,"Supabase is already initialized. Skipping reinitialization.",null,null)
-q=j
+ata(a,b,c){var s=0,r=A.J(t._k),q,p,o,n,m,l,k
+var $async$ata=A.K(function(d,e){if(d===1)return A.G(e,r)
+for(;;)switch(s){case 0:k=$.me()
+if(k.a){$.aQG().b7(B.ds,"Supabase is already initialized. Skipping reinitialization.",null,null)
+q=k
 s=1
-break}j.d=!1
+break}k.d=!1
 p=$.aQG()
 p.b7(B.dr,"Initialize Supabase v2.14.2",null,null)
-o=new A.arM(new A.aU(new A.ae($.af,t.V),t.Q))
+if(b.b==null){o=new A.arM(new A.aU(new A.ae($.af,t.V),t.Q))
 o.AI()
-n=B.L9.auL(o)
-if(n.d==null)n=n.auJ(new A.arN("sb-"+B.b.ga0(A.cr(b,0,null).gki().split("."))+"-auth-token"))
+b=b.auL(o)}if(b.d==null)b=b.auJ(new A.arN("sb-"+B.b.ga0(A.cr(c,0,null).gki().split("."))+"-auth-token"))
 o=t.N
 o=A.cQ($.aZ6(),o,o)
-j.b=A.aVl(b,a,null,n,o,null,B.oE,B.oG,B.oJ)
-j.apU()
-j.a=!0
-m=j.c=new A.Ve($.aZ2(),A.fp("supabase.supabase_flutter"))
+k.b=A.aVl(c,a,null,b,o,null,B.oE,B.oG,B.oJ)
+k.apU()
+k.a=!0
+n=k.c=new A.Ve($.aZ2(),A.fp("supabase.supabase_flutter"))
 s=3
-return A.C(m.oI(n),$async$ata)
-case 3:o=m.uu()
-l=$.af
-l=new A.OM(new A.aU(new A.ae(l,t.LR),t.zh),new A.aU(new A.ae(l,t.xF),t.oe),null,t.Od)
-l.e4(o)
-k=l.f
-j.e=k===$?l.f=new A.ON(l,t.Ew):k
+return A.C(n.oI(b),$async$ata)
+case 3:o=n.uu()
+m=$.af
+m=new A.OM(new A.aU(new A.ae(m,t.LR),t.zh),new A.aU(new A.ae(m,t.xF),t.oe),null,t.Od)
+m.e4(o)
+l=m.f
+k.e=l===$?m.f=new A.ON(m,t.Ew):l
 p.b7(B.ds,"***** Supabase init completed *****",null,null)
-q=j
+q=k
 s=1
 break
 case 1:return A.H(q,r)}})

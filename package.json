@@ -1,7 +1,7 @@
 ﻿{
-  "name": "feedERP",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "flutter build web --release"
-  }
+    "name":  "feedERP",
+    "version":  "1.0.0",
+    "scripts":  {
+                    "build":  "bash build.sh"
+                }
 }

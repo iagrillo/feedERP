@@ -96,6 +96,17 @@ final _branchPerformanceProvider = FutureProvider<Map<String, String>>((ref) asy
   };
 });
 
+final _totalRevenueProvider = FutureProvider<Map<String, double>>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final data = await client.from('branch_revenue_summary').select();
+  double income = 0, expense = 0;
+  for (final row in data as List) {
+    income  += (row['total_income']  as num?)?.toDouble() ?? 0;
+    expense += (row['total_expense'] as num?)?.toDouble() ?? 0;
+  }
+  return {'income': income, 'expense': expense, 'profit': income - expense};
+});
+
 //  Page 
 
 class AdminDashboardPage extends ConsumerWidget {
@@ -114,7 +125,8 @@ class AdminDashboardPage extends ConsumerWidget {
     final fastProductAsync   = ref.watch(_fastestProductProvider);
     final pendingAsync       = ref.watch(_pendingTransfersProvider);
     final creditAsync        = ref.watch(_outstandingCreditProvider);
-    final branchPerfAsync    = ref.watch(_branchPerformanceProvider);
+    final branchPerfAsync      = ref.watch(_branchPerformanceProvider);
+    final totalRevenueAsync    = ref.watch(_totalRevenueProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F2F5),
@@ -194,8 +206,8 @@ class AdminDashboardPage extends ConsumerWidget {
                     title: 'Monthly Revenue',
                     icon: Icons.trending_up,
                     color: Colors.blue,
-                    value: revenueAsync.when(
-                      data:    (r) => Fmt.currency(r['total_income']),
+                    value: totalRevenueAsync.when(
+                      data:    (r) => Fmt.currency(r['income']!),
                       loading: () => '...',
                       error:   (_, __) => 'Err',
                     ),
@@ -205,8 +217,8 @@ class AdminDashboardPage extends ConsumerWidget {
                     title: 'Monthly Profit',
                     icon: Icons.account_balance_wallet_outlined,
                     color: Colors.purple,
-                    value: revenueAsync.when(
-                      data:    (r) => Fmt.currency(r['profit']),
+                    value: totalRevenueAsync.when(
+                      data:    (r) => Fmt.currency(r['profit']!),
                       loading: () => '...',
                       error:   (_, __) => 'Err',
                     ),
@@ -459,6 +471,9 @@ class _EmptyState extends StatelessWidget {
     ),
   );
 }
+
+
+
 
 
 

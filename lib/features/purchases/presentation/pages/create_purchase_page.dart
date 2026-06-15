@@ -34,8 +34,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
   List<ProductModel> _products = [];
   bool _loading = false;
 
-  // Destination
-  String _destinationType = 'branch'; // 'branch' or 'warehouse'
+  String _destinationType = 'branch';
   List<Map<String, dynamic>> _branches = [];
   List<Map<String, dynamic>> _warehouses = [];
   String? _selectedBranchId;
@@ -64,7 +63,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
 
   Future<void> _loadWarehouses() async {
     final client = ref.read(supabaseClientProvider);
-    final data = await client.from('warehouses').select().eq('is_active', true).order('name');
+    final data = await client.from('warehouses').select().order('name');
     setState(() => _warehouses = (data as List).cast<Map<String, dynamic>>());
   }
 
@@ -146,6 +145,55 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     }
   }
 
+  Widget _buildDestinationSection(dynamic user) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(height: 24),
+      const Text('Destination', style: TextStyle(fontWeight: FontWeight.bold,
+          fontSize: 14, color: Color(0xFF1B5E20))),
+      const SizedBox(height: 8),
+      SegmentedButton<String>(
+        segments: const [
+          ButtonSegment(value: 'branch',    label: Text('Branch'),    icon: Icon(Icons.store)),
+          ButtonSegment(value: 'warehouse', label: Text('Warehouse'), icon: Icon(Icons.warehouse)),
+        ],
+        selected: {_destinationType},
+        onSelectionChanged: (s) => setState(() {
+          _destinationType = s.first;
+          _selectedBranchId = null;
+          _selectedWarehouseId = null;
+        }),
+      ),
+      const SizedBox(height: 12),
+      if (_destinationType == 'branch') ...[
+        DropdownButtonFormField<String>(
+          key: const ValueKey('branch_dropdown'),
+          value: _selectedBranchId,
+          decoration: const InputDecoration(labelText: 'Select Branch *'),
+          items: _branches.map((b) => DropdownMenuItem(
+            value: b['id'] as String,
+            child: Text(b['name'] as String),
+          )).toList(),
+          onChanged: (v) {
+            setState(() => _selectedBranchId = v);
+          },
+        ),
+      ] else ...[
+        DropdownButtonFormField<String>(
+          key: const ValueKey('warehouse_dropdown'),
+          value: _selectedWarehouseId,
+          decoration: const InputDecoration(labelText: 'Select Warehouse *'),
+          items: _warehouses.map((w) => DropdownMenuItem(
+            value: w['id'] as String,
+            child: Text(w['name'] as String),
+          )).toList(),
+          onChanged: (v) {
+            setState(() => _selectedWarehouseId = v);
+          },
+        ),
+      ],
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authNotifierProvider).valueOrNull;
@@ -168,48 +216,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               Expanded(child: TextFormField(controller: _refCtrl,
                   decoration: const InputDecoration(labelText: 'Invoice Ref'))),
             ]),
-
-            // Destination — admin only
-            if (user?.isAdmin == true) ...[
-              const SizedBox(height: 24),
-              const Text('Destination', style: TextStyle(fontWeight: FontWeight.bold,
-                  fontSize: 14, color: Color(0xFF1B5E20))),
-              const SizedBox(height: 8),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'branch',    label: Text('Branch'),    icon: Icon(Icons.store)),
-                  ButtonSegment(value: 'warehouse', label: Text('Warehouse'), icon: Icon(Icons.warehouse)),
-                ],
-                selected: {_destinationType},
-                onSelectionChanged: (s) => setState(() {
-                  _destinationType = s.first;
-                  _selectedBranchId = null;
-                  _selectedWarehouseId = null;
-                }),
-              ),
-              const SizedBox(height: 12),
-              if (_destinationType == 'branch')
-                DropdownButtonFormField<String>(
-                  value: _selectedBranchId,
-                  decoration: const InputDecoration(labelText: 'Select Branch *'),
-                  items: _branches.map((b) => DropdownMenuItem(
-                    value: b['id'] as String,
-                    child: Text(b['name'] as String),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedBranchId = v),
-                )
-              else
-                DropdownButtonFormField<String>(
-                  value: _selectedWarehouseId,
-                  decoration: const InputDecoration(labelText: 'Select Warehouse *'),
-                  items: _warehouses.map((w) => DropdownMenuItem(
-                    value: w['id'] as String,
-                    child: Text(w['name'] as String),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedWarehouseId = v),
-                ),
-            ],
-
+            if (user?.isAdmin == true) _buildDestinationSection(user),
             const SizedBox(height: 20),
             const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold,
                 fontSize: 14, color: Color(0xFF1B5E20))),

@@ -46,6 +46,21 @@ final _fastestProductProvider = FutureProvider<String>((ref) async {
   return data.first['product_name'] as String? ?? 'N/A';
 });
 
+final _monthlyPurchasesProvider = FutureProvider<double>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final now    = DateTime.now();
+  final start  = DateTime(now.year, now.month, 1).toIso8601String();
+  final end    = DateTime(now.year, now.month + 1, 1)
+      .subtract(const Duration(seconds: 1)).toIso8601String();
+  final data   = await client
+      .from(AppConstants.tablePurchases)
+      .select('total_amount')
+      .gte('created_at', start)
+      .lte('created_at', end);
+  return (data as List).fold<double>(
+      0, (sum, e) => sum + ((e['total_amount'] as num?)?.toDouble() ?? 0));
+});
+
 final _pendingTransfersProvider = FutureProvider<int>((ref) async {
   final client = ref.watch(supabaseClientProvider);
   final data   = await client
@@ -93,7 +108,8 @@ class AdminDashboardPage extends ConsumerWidget {
     final branchesAsync      = ref.watch(branchNotifierProvider);
     final revenueAsync       = ref.watch(branchRevenueSummaryProvider(null));
     final lowStockAsync      = ref.watch(lowStockProvider(null));
-    final todaySalesAsync    = ref.watch(_todaySalesProvider);
+    final todaySalesAsync      = ref.watch(_todaySalesProvider);
+    final monthlyPurchasesAsync = ref.watch(_monthlyPurchasesProvider);
     final invValueAsync      = ref.watch(_inventoryValueProvider);
     final fastProductAsync   = ref.watch(_fastestProductProvider);
     final pendingAsync       = ref.watch(_pendingTransfersProvider);
@@ -157,6 +173,17 @@ class AdminDashboardPage extends ConsumerWidget {
                     icon: Icons.point_of_sale_outlined,
                     color: Colors.green,
                     value: todaySalesAsync.when(
+                      data:    (v) => Fmt.currency(v),
+                      loading: () => '...',
+                      error:   (_, __) => 'Err',
+                    ),
+                  ),
+
+                    _KpiCard(
+                    title: 'Monthly Purchases',
+                    icon: Icons.shopping_cart_outlined,
+                    color: Colors.deepOrange,
+                    value: monthlyPurchasesAsync.when(
                       data:    (v) => Fmt.currency(v),
                       loading: () => '...',
                       error:   (_, __) => 'Err',
@@ -432,4 +459,7 @@ class _EmptyState extends StatelessWidget {
     ),
   );
 }
+
+
+
 

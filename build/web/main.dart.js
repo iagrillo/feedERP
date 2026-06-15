@@ -49998,7 +49998,7 @@ i=A.Tj(i,!0)
 l=$.cC().mk(i)
 k=A.a5(["status",a],t.N,t.z)
 if(g){J.hq(k,"confirmed_at",new A.cj(Date.now(),0,!1).kJ())
-J.hq(k,"confirmed_by",B.c.cd(m.e.a.a))}s=10
+J.hq(k,"delivered_by_name",B.c.cd(m.e.a.a))}s=10
 return A.C(l.ck("purchases").bW(k).eN("id",A.au(m.a.c.i(0,"id"))),$async$tm)
 case 10:if(m.c==null){n=[1]
 s=8
@@ -50120,7 +50120,7 @@ case 2:return A.G(o.at(-1),r)}})
 return A.I($async$$0,r)},
 $S:8}
 A.aEx.prototype={
-$2(a,b){var s,r,q,p,o=this,n=null,m="invoice_ref",l="confirmed_by",k="confirmed_at",j=A.h8(n,n,B.C,n,n,new A.dx(B.hV,n,n,A.hY(2),n,n,B.ay),n,4,B.KW,n,n,n,40),i=o.b,h=A.a6(A.au(i.i(0,"supplier_name")),n,n,n,B.a0r,n,n),g=o.c,f=A.ac(B.d.aG(25.5),g.t()>>>16&255,g.t()>>>8&255,g.t()&255),e=A.hY(8),d=o.d,c=t.p
+$2(a,b){var s,r,q,p,o=this,n=null,m="invoice_ref",l="delivered_by_name",k="confirmed_at",j=A.h8(n,n,B.C,n,n,new A.dx(B.hV,n,n,A.hY(2),n,n,B.ay),n,4,B.KW,n,n,n,40),i=o.b,h=A.a6(A.au(i.i(0,"supplier_name")),n,n,n,B.a0r,n,n),g=o.c,f=A.ac(B.d.aG(25.5),g.t()>>>16&255,g.t()>>>8&255,g.t()&255),e=A.hY(8),d=o.d,c=t.p
 e=A.cm(A.b([h,A.h8(n,A.a6(d,n,n,n,A.dF(n,n,g,n,n,n,n,n,n,n,n,n,n,n,B.cf,n,n,!0,n,n,n,n,n,n,n,n),n,n),B.C,n,n,new A.dx(f,n,n,e,n,n,B.ay),n,n,n,B.q9,n,n,n)],c),B.p,B.d1,B.q,0,n)
 f=o.a
 g=f.mM(B.qU,"Destination",o.e)

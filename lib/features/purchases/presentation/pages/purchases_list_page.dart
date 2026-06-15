@@ -202,7 +202,7 @@ class _PurchaseDetailSheetState extends State<_PurchaseDetailSheet> {
       final update = <String, dynamic>{'status': newStatus};
       if (newStatus == 'delivered') {
         update['confirmed_at']  = DateTime.now().toIso8601String();
-        update['confirmed_by']  = _deliveredByCtrl.text.trim();
+        update['delivered_by_name'] = _deliveredByCtrl.text.trim();
       }
       await client.from(AppConstants.tablePurchases)
           .update(update)
@@ -356,9 +356,8 @@ class _PurchaseDetailSheetState extends State<_PurchaseDetailSheet> {
                 _infoRow(Icons.receipt_outlined, 'Invoice Ref', p['invoice_ref'] as String),
               if (p['notes'] != null)
                 _infoRow(Icons.notes_outlined, 'Notes', p['notes'] as String),
-              if (p['confirmed_by'] != null)
-                _infoRow(Icons.verified_user_outlined, 'Delivery Confirmed By',
-                    p['confirmed_by'] as String),
+              if (p['delivered_by_name'] != null)
+                _infoRow(Icons.verified_user_outlined, 'Delivery Confirmed By', p['delivered_by_name'] as String),
               if (p['confirmed_at'] != null) ...[
                 _infoRow(Icons.check_circle_outline, 'Delivered At',
                     Fmt.date(DateTime.tryParse(p['confirmed_at'] as String)!)),
@@ -434,3 +433,4 @@ class _PurchaseDetailSheetState extends State<_PurchaseDetailSheet> {
     ),
   );
 }
+

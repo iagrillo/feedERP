@@ -20,6 +20,7 @@ const _adminNav = [
   _NavItem('Purchases',   Icons.shopping_cart_outlined,    '/admin/purchases'),
   _NavItem('Transfers',   Icons.swap_horiz_rounded,        '/admin/transfers'),
   _NavItem('Accounting',  Icons.account_balance_outlined,  '/admin/accounting'),
+  _NavItem('KPI Dashboard', Icons.bar_chart_outlined,         '/admin/kpi'),
 ];
 
 class AdminShell extends ConsumerWidget {

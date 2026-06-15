@@ -50,7 +50,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
 
   Future<void> _loadProducts() async {
     final client = ref.read(supabaseClientProvider);
-    final data   = await client.from(AppConstants.tableProducts)
+    final data = await client.from(AppConstants.tableProducts)
         .select().eq('is_active', true).order('name');
     setState(() => _products = (data as List).map((e) => ProductModel.fromJson(e)).toList());
   }
@@ -99,7 +99,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
       final client = ref.read(supabaseClientProvider);
 
       final result = await client.from(AppConstants.tablePurchases).insert({
-        'branch_id':    user.isAdmin == true
+        'branch_id': user.isAdmin == true
             ? (_destinationType == 'branch' ? _selectedBranchId : null)
             : user.branchId,
         'warehouse_id': user.isAdmin == true && _destinationType == 'warehouse'
@@ -145,55 +145,6 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     }
   }
 
-  Widget _buildDestinationSection(dynamic user) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SizedBox(height: 24),
-      const Text('Destination', style: TextStyle(fontWeight: FontWeight.bold,
-          fontSize: 14, color: Color(0xFF1B5E20))),
-      const SizedBox(height: 8),
-      SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(value: 'branch',    label: Text('Branch'),    icon: Icon(Icons.store)),
-          ButtonSegment(value: 'warehouse', label: Text('Warehouse'), icon: Icon(Icons.warehouse)),
-        ],
-        selected: {_destinationType},
-        onSelectionChanged: (s) => setState(() {
-          _destinationType = s.first;
-          _selectedBranchId = null;
-          _selectedWarehouseId = null;
-        }),
-      ),
-      const SizedBox(height: 12),
-      if (_destinationType == 'branch') ...[
-        DropdownButtonFormField<String>(
-          key: const ValueKey('branch_dropdown'),
-          value: _selectedBranchId,
-          decoration: const InputDecoration(labelText: 'Select Branch *'),
-          items: _branches.map((b) => DropdownMenuItem(
-            value: b['id'] as String,
-            child: Text(b['name'] as String),
-          )).toList(),
-          onChanged: (v) {
-            setState(() => _selectedBranchId = v);
-          },
-        ),
-      ] else ...[
-        DropdownButtonFormField<String>(
-          key: const ValueKey('warehouse_dropdown'),
-          value: _selectedWarehouseId,
-          decoration: const InputDecoration(labelText: 'Select Warehouse *'),
-          items: _warehouses.map((w) => DropdownMenuItem(
-            value: w['id'] as String,
-            child: Text(w['name'] as String),
-          )).toList(),
-          onChanged: (v) {
-            setState(() => _selectedWarehouseId = v);
-          },
-        ),
-      ],
-    ]);
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authNotifierProvider).valueOrNull;
@@ -203,8 +154,8 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
         Expanded(flex: 3, child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Supplier Details', style: TextStyle(fontWeight: FontWeight.bold,
-                fontSize: 14, color: Color(0xFF1B5E20))),
+            const Text('Supplier Details', style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
             const SizedBox(height: 12),
             TextFormField(controller: _supplierCtrl,
                 decoration: const InputDecoration(labelText: 'Supplier Name *')),
@@ -216,10 +167,71 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               Expanded(child: TextFormField(controller: _refCtrl,
                   decoration: const InputDecoration(labelText: 'Invoice Ref'))),
             ]),
-            if (user?.isAdmin == true) _buildDestinationSection(user),
+
+            // Destination — admin only
+            if (user?.isAdmin == true) ...[
+              const SizedBox(height: 24),
+              const Text('Destination', style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
+              const SizedBox(height: 8),
+              // Use Row of ChoiceChips instead of SegmentedButton to avoid overflow
+              Row(children: [
+                Expanded(child: ChoiceChip(
+                  label: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.store, size: 16),
+                    SizedBox(width: 6),
+                    Text('Branch'),
+                  ]),
+                  selected: _destinationType == 'branch',
+                  onSelected: (_) => setState(() {
+                    _destinationType = 'branch';
+                    _selectedBranchId = null;
+                    _selectedWarehouseId = null;
+                  }),
+                )),
+                const SizedBox(width: 8),
+                Expanded(child: ChoiceChip(
+                  label: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.warehouse, size: 16),
+                    SizedBox(width: 6),
+                    Text('Warehouse'),
+                  ]),
+                  selected: _destinationType == 'warehouse',
+                  onSelected: (_) => setState(() {
+                    _destinationType = 'warehouse';
+                    _selectedBranchId = null;
+                    _selectedWarehouseId = null;
+                  }),
+                )),
+              ]),
+              const SizedBox(height: 12),
+              if (_destinationType == 'branch')
+                DropdownButtonFormField<String>(
+                  key: const ValueKey('branch_dd'),
+                  value: _selectedBranchId,
+                  decoration: const InputDecoration(labelText: 'Select Branch *'),
+                  items: _branches.map((b) => DropdownMenuItem(
+                    value: b['id'] as String,
+                    child: Text(b['name'] as String),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _selectedBranchId = v),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  key: const ValueKey('warehouse_dd'),
+                  value: _selectedWarehouseId,
+                  decoration: const InputDecoration(labelText: 'Select Warehouse *'),
+                  items: _warehouses.map((w) => DropdownMenuItem(
+                    value: w['id'] as String,
+                    child: Text(w['name'] as String),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _selectedWarehouseId = v),
+                ),
+            ],
+
             const SizedBox(height: 20),
-            const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold,
-                fontSize: 14, color: Color(0xFF1B5E20))),
+            const Text('Payment Method', style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
             const SizedBox(height: 8),
             Wrap(spacing: 8, children: PaymentMethod.values.map((m) => ChoiceChip(
               label: Text(m.name[0].toUpperCase() + m.name.substring(1)),
@@ -227,8 +239,8 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               onSelected: (_) => setState(() => _paymentMethod = m),
             )).toList()),
             const SizedBox(height: 20),
-            const Text('Products', style: TextStyle(fontWeight: FontWeight.bold,
-                fontSize: 14, color: Color(0xFF1B5E20))),
+            const Text('Products', style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
             const SizedBox(height: 12),
             _ItemAdder(products: _products, onAdd: (p, qty, cost) {
               setState(() => _items.add(_PurchaseItem(

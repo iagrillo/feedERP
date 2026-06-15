@@ -64,7 +64,12 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
   Future<void> _loadWarehouses() async {
     final client = ref.read(supabaseClientProvider);
     final data = await client.from('warehouses').select().order('name');
-    setState(() => _warehouses = (data as List).cast<Map<String, dynamic>>());
+    final list = (data as List).cast<Map<String, dynamic>>();
+    setState(() {
+      _warehouses = list;
+      // Auto-select if only one warehouse
+      if (list.length == 1) _selectedWarehouseId = list.first['id'] as String;
+    });
   }
 
   double get _total => _items.fold(0, (s, i) => s + i.lineTotal);
@@ -174,47 +179,37 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
                   fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
               const SizedBox(height: 8),
               Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: _destinationType == 'branch'
-                          ? const Color(0xFF1B5E20)
-                          : Colors.transparent,
-                      foregroundColor: _destinationType == 'branch'
-                          ? Colors.white
-                          : const Color(0xFF1B5E20),
-                      side: const BorderSide(color: Color(0xFF1B5E20)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => setState(() {
-                      _destinationType = 'branch';
-                      _selectedBranchId = null;
-                      _selectedWarehouseId = null;
-                    }),
-                    child: const Text('Branch'),
+                Expanded(child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: _destinationType == 'branch'
+                        ? const Color(0xFF1B5E20) : Colors.transparent,
+                    foregroundColor: _destinationType == 'branch'
+                        ? Colors.white : const Color(0xFF1B5E20),
+                    side: const BorderSide(color: Color(0xFF1B5E20)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                ),
+                  onPressed: () => setState(() {
+                    _destinationType = 'branch';
+                    _selectedBranchId = null;
+                  }),
+                  child: const Text('Branch'),
+                )),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: _destinationType == 'warehouse'
-                          ? const Color(0xFF1B5E20)
-                          : Colors.transparent,
-                      foregroundColor: _destinationType == 'warehouse'
-                          ? Colors.white
-                          : const Color(0xFF1B5E20),
-                      side: const BorderSide(color: Color(0xFF1B5E20)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => setState(() {
-                      _destinationType = 'warehouse';
-                      _selectedBranchId = null;
-                      _selectedWarehouseId = null;
-                    }),
-                    child: const Text('Warehouse'),
+                Expanded(child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: _destinationType == 'warehouse'
+                        ? const Color(0xFF1B5E20) : Colors.transparent,
+                    foregroundColor: _destinationType == 'warehouse'
+                        ? Colors.white : const Color(0xFF1B5E20),
+                    side: const BorderSide(color: Color(0xFF1B5E20)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                ),
+                  onPressed: () => setState(() {
+                    _destinationType = 'warehouse';
+                    _selectedBranchId = null;
+                  }),
+                  child: const Text('Warehouse'),
+                )),
               ]),
               const SizedBox(height: 12),
               if (_destinationType == 'branch')
@@ -228,17 +223,31 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
                   )).toList(),
                   onChanged: (v) => setState(() => _selectedBranchId = v),
                 )
-              else
-                DropdownButtonFormField<String>(
-                  key: const ValueKey('warehouse_dd'),
-                  value: _selectedWarehouseId,
-                  decoration: const InputDecoration(labelText: 'Select Warehouse *'),
-                  items: _warehouses.map((w) => DropdownMenuItem(
-                    value: w['id'] as String,
-                    child: Text(w['name'] as String),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedWarehouseId = v),
-                ),
+              else ...[
+                // Show warehouse name as read-only if only one, dropdown if multiple
+                if (_warehouses.length == 1)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(_warehouses.first['name'] as String,
+                        style: const TextStyle(fontSize: 16)),
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('warehouse_dd'),
+                    value: _selectedWarehouseId,
+                    decoration: const InputDecoration(labelText: 'Select Warehouse *'),
+                    items: _warehouses.map((w) => DropdownMenuItem(
+                      value: w['id'] as String,
+                      child: Text(w['name'] as String),
+                    )).toList(),
+                    onChanged: (v) => setState(() => _selectedWarehouseId = v),
+                  ),
+              ],
             ],
 
             const SizedBox(height: 20),

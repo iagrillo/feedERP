@@ -34,18 +34,14 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
   List<ProductModel> _products = [];
   bool _loading = false;
 
-  String _destinationType = 'branch';
   List<Map<String, dynamic>> _branches = [];
-  List<Map<String, dynamic>> _warehouses = [];
   String? _selectedBranchId;
-  String? _selectedWarehouseId;
 
   @override
   void initState() {
     super.initState();
     _loadProducts();
     _loadBranches();
-    _loadWarehouses();
   }
 
   Future<void> _loadProducts() async {
@@ -61,33 +57,15 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     setState(() => _branches = (data as List).cast<Map<String, dynamic>>());
   }
 
-  Future<void> _loadWarehouses() async {
-    final client = ref.read(supabaseClientProvider);
-    final data = await client.from('warehouses').select().order('name');
-    final list = (data as List).cast<Map<String, dynamic>>();
-    setState(() {
-      _warehouses = list;
-      // Auto-select if only one warehouse
-      if (list.length == 1) _selectedWarehouseId = list.first['id'] as String;
-    });
-  }
-
   double get _total => _items.fold(0, (s, i) => s + i.lineTotal);
 
   Future<void> _save() async {
     final user = ref.read(authNotifierProvider).valueOrNull!;
 
-    if (user.isAdmin == true) {
-      if (_destinationType == 'branch' && _selectedBranchId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a branch')));
-        return;
-      }
-      if (_destinationType == 'warehouse' && _selectedWarehouseId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a warehouse')));
-        return;
-      }
+    if (user.isAdmin == true && _selectedBranchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a branch or warehouse')));
+      return;
     }
     if (_supplierCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -104,12 +82,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
       final client = ref.read(supabaseClientProvider);
 
       final result = await client.from(AppConstants.tablePurchases).insert({
-        'branch_id': user.isAdmin == true
-            ? (_destinationType == 'branch' ? _selectedBranchId : null)
-            : user.branchId,
-        'warehouse_id': user.isAdmin == true && _destinationType == 'warehouse'
-            ? _selectedWarehouseId
-            : null,
+        'branch_id':      user.isAdmin == true ? _selectedBranchId : user.branchId,
         'supplier_name':  _supplierCtrl.text.trim(),
         'supplier_phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
         'invoice_ref':    _refCtrl.text.trim().isEmpty ? null : _refCtrl.text.trim(),
@@ -178,76 +151,15 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               const Text('Destination', style: TextStyle(
                   fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
               const SizedBox(height: 8),
-              Row(children: [
-                Expanded(child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _destinationType == 'branch'
-                        ? const Color(0xFF1B5E20) : Colors.transparent,
-                    foregroundColor: _destinationType == 'branch'
-                        ? Colors.white : const Color(0xFF1B5E20),
-                    side: const BorderSide(color: Color(0xFF1B5E20)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () => setState(() {
-                    _destinationType = 'branch';
-                    _selectedBranchId = null;
-                  }),
-                  child: const Text('Branch'),
-                )),
-                const SizedBox(width: 8),
-                Expanded(child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: _destinationType == 'warehouse'
-                        ? const Color(0xFF1B5E20) : Colors.transparent,
-                    foregroundColor: _destinationType == 'warehouse'
-                        ? Colors.white : const Color(0xFF1B5E20),
-                    side: const BorderSide(color: Color(0xFF1B5E20)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () => setState(() {
-                    _destinationType = 'warehouse';
-                    _selectedBranchId = null;
-                  }),
-                  child: const Text('Warehouse'),
-                )),
-              ]),
-              const SizedBox(height: 12),
-              if (_destinationType == 'branch')
-                DropdownButtonFormField<String>(
-                  key: const ValueKey('branch_dd'),
-                  value: _selectedBranchId,
-                  decoration: const InputDecoration(labelText: 'Select Branch *'),
-                  items: _branches.map((b) => DropdownMenuItem(
-                    value: b['id'] as String,
-                    child: Text(b['name'] as String),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedBranchId = v),
-                )
-              else ...[
-                // Show warehouse name as read-only if only one, dropdown if multiple
-                if (_warehouses.length == 1)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(_warehouses.first['name'] as String,
-                        style: const TextStyle(fontSize: 16)),
-                  )
-                else
-                  DropdownButtonFormField<String>(
-                    key: const ValueKey('warehouse_dd'),
-                    value: _selectedWarehouseId,
-                    decoration: const InputDecoration(labelText: 'Select Warehouse *'),
-                    items: _warehouses.map((w) => DropdownMenuItem(
-                      value: w['id'] as String,
-                      child: Text(w['name'] as String),
-                    )).toList(),
-                    onChanged: (v) => setState(() => _selectedWarehouseId = v),
-                  ),
-              ],
+              DropdownButtonFormField<String>(
+                value: _selectedBranchId,
+                decoration: const InputDecoration(labelText: 'Select Branch / Warehouse *'),
+                items: _branches.map((b) => DropdownMenuItem(
+                  value: b['id'] as String,
+                  child: Text(b['name'] as String),
+                )).toList(),
+                onChanged: (v) => setState(() => _selectedBranchId = v),
+              ),
             ],
 
             const SizedBox(height: 20),

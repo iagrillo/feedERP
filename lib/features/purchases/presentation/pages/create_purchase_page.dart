@@ -34,15 +34,19 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
   List<ProductModel> _products = [];
   bool _loading = false;
 
-  // Branch state for admin
+  // Destination
+  String _destinationType = 'branch'; // 'branch' or 'warehouse'
   List<Map<String, dynamic>> _branches = [];
+  List<Map<String, dynamic>> _warehouses = [];
   String? _selectedBranchId;
+  String? _selectedWarehouseId;
 
   @override
   void initState() {
     super.initState();
     _loadProducts();
     _loadBranches();
+    _loadWarehouses();
   }
 
   Future<void> _loadProducts() async {
@@ -58,15 +62,28 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     setState(() => _branches = (data as List).cast<Map<String, dynamic>>());
   }
 
+  Future<void> _loadWarehouses() async {
+    final client = ref.read(supabaseClientProvider);
+    final data = await client.from('warehouses').select().eq('is_active', true).order('name');
+    setState(() => _warehouses = (data as List).cast<Map<String, dynamic>>());
+  }
+
   double get _total => _items.fold(0, (s, i) => s + i.lineTotal);
 
   Future<void> _save() async {
     final user = ref.read(authNotifierProvider).valueOrNull!;
 
-    if (user.isAdmin == true && _selectedBranchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a branch')));
-      return;
+    if (user.isAdmin == true) {
+      if (_destinationType == 'branch' && _selectedBranchId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a branch')));
+        return;
+      }
+      if (_destinationType == 'warehouse' && _selectedWarehouseId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a warehouse')));
+        return;
+      }
     }
     if (_supplierCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,7 +100,12 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
       final client = ref.read(supabaseClientProvider);
 
       final result = await client.from(AppConstants.tablePurchases).insert({
-        'branch_id':      user.isAdmin == true ? _selectedBranchId : user.branchId,
+        'branch_id':    user.isAdmin == true
+            ? (_destinationType == 'branch' ? _selectedBranchId : null)
+            : user.branchId,
+        'warehouse_id': user.isAdmin == true && _destinationType == 'warehouse'
+            ? _selectedWarehouseId
+            : null,
         'supplier_name':  _supplierCtrl.text.trim(),
         'supplier_phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
         'invoice_ref':    _refCtrl.text.trim().isEmpty ? null : _refCtrl.text.trim(),
@@ -146,21 +168,48 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               Expanded(child: TextFormField(controller: _refCtrl,
                   decoration: const InputDecoration(labelText: 'Invoice Ref'))),
             ]),
+
+            // Destination — admin only
             if (user?.isAdmin == true) ...[
-              const SizedBox(height: 20),
-              const Text('Branch', style: TextStyle(fontWeight: FontWeight.bold,
+              const SizedBox(height: 24),
+              const Text('Destination', style: TextStyle(fontWeight: FontWeight.bold,
                   fontSize: 14, color: Color(0xFF1B5E20))),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedBranchId,
-                decoration: const InputDecoration(labelText: 'Select Branch *'),
-                items: _branches.map((b) => DropdownMenuItem(
-                  value: b['id'] as String,
-                  child: Text(b['name'] as String),
-                )).toList(),
-                onChanged: (v) => setState(() => _selectedBranchId = v),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'branch',    label: Text('Branch'),    icon: Icon(Icons.store)),
+                  ButtonSegment(value: 'warehouse', label: Text('Warehouse'), icon: Icon(Icons.warehouse)),
+                ],
+                selected: {_destinationType},
+                onSelectionChanged: (s) => setState(() {
+                  _destinationType = s.first;
+                  _selectedBranchId = null;
+                  _selectedWarehouseId = null;
+                }),
               ),
+              const SizedBox(height: 12),
+              if (_destinationType == 'branch')
+                DropdownButtonFormField<String>(
+                  value: _selectedBranchId,
+                  decoration: const InputDecoration(labelText: 'Select Branch *'),
+                  items: _branches.map((b) => DropdownMenuItem(
+                    value: b['id'] as String,
+                    child: Text(b['name'] as String),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _selectedBranchId = v),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  value: _selectedWarehouseId,
+                  decoration: const InputDecoration(labelText: 'Select Warehouse *'),
+                  items: _warehouses.map((w) => DropdownMenuItem(
+                    value: w['id'] as String,
+                    child: Text(w['name'] as String),
+                  )).toList(),
+                  onChanged: (v) => setState(() => _selectedWarehouseId = v),
+                ),
             ],
+
             const SizedBox(height: 20),
             const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold,
                 fontSize: 14, color: Color(0xFF1B5E20))),

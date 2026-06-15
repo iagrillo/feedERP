@@ -8,26 +8,28 @@ class KpiDashboardPage extends ConsumerWidget {
   static const _categories = ['All','Revenue','Profitability','Cash Flow','Liquidity','Efficiency','Customer'];
 
   static const _kpiMeta = {
-    'revenue_total_sales':       {'name': 'Total Sales',            'cat': 'Revenue',       'fmt': 'currency'},
-    'revenue_growth_rate':       {'name': 'Revenue Growth',         'cat': 'Revenue',       'fmt': 'percent'},
-    'gross_profit':              {'name': 'Gross Profit',           'cat': 'Profitability', 'fmt': 'currency'},
-    'gross_profit_margin':       {'name': 'Gross Profit Margin',    'cat': 'Profitability', 'fmt': 'percent'},
-    'operating_profit':          {'name': 'Operating Profit',       'cat': 'Profitability', 'fmt': 'currency'},
-    'net_profit':                {'name': 'Net Profit',             'cat': 'Profitability', 'fmt': 'currency'},
-    'net_profit_margin':         {'name': 'Net Profit Margin',      'cat': 'Profitability', 'fmt': 'percent'},
-    'operating_cash_flow':       {'name': 'Operating Cash Flow',    'cat': 'Cash Flow',     'fmt': 'currency'},
-    'free_cash_flow':            {'name': 'Free Cash Flow',         'cat': 'Cash Flow',     'fmt': 'currency'},
-    'current_ratio':             {'name': 'Current Ratio',          'cat': 'Liquidity',     'fmt': 'ratio'},
-    'quick_ratio':               {'name': 'Quick Ratio',            'cat': 'Liquidity',     'fmt': 'ratio'},
-    'working_capital':           {'name': 'Working Capital',        'cat': 'Liquidity',     'fmt': 'currency'},
-    'debt_to_equity':            {'name': 'Debt to Equity',         'cat': 'Liquidity',     'fmt': 'ratio'},
-    'asset_turnover':            {'name': 'Asset Turnover',         'cat': 'Efficiency',    'fmt': 'ratio'},
-    'inventory_turnover':        {'name': 'Inventory Turnover',     'cat': 'Efficiency',    'fmt': 'ratio'},
-    'days_sales_outstanding':    {'name': 'Days Sales Outstanding', 'cat': 'Efficiency',    'fmt': 'days'},
-    'return_on_assets':          {'name': 'Return on Assets',       'cat': 'Efficiency',    'fmt': 'percent'},
-    'return_on_equity':          {'name': 'Return on Equity',       'cat': 'Efficiency',    'fmt': 'percent'},
-    'customer_lifetime_value':   {'name': 'Customer LTV',           'cat': 'Customer',      'fmt': 'currency'},
-    'customer_acquisition_cost': {'name': 'Customer CAC',           'cat': 'Customer',      'fmt': 'currency'},
+    'revenue_total_sales':  {'name': 'Total Sales',           'cat': 'Revenue',       'fmt': 'currency'},
+    'revenue_growth_rate':  {'name': 'Revenue Growth',        'cat': 'Revenue',       'fmt': 'percent'},
+    'gross_profit':         {'name': 'Gross Profit',          'cat': 'Profitability', 'fmt': 'currency'},
+    'gross_profit_margin':  {'name': 'Gross Profit Margin',   'cat': 'Profitability', 'fmt': 'percent'},
+    'operating_profit':     {'name': 'Operating Profit',      'cat': 'Profitability', 'fmt': 'currency'},
+    'net_profit':           {'name': 'Net Profit',            'cat': 'Profitability', 'fmt': 'currency'},
+    'net_profit_margin':    {'name': 'Net Profit Margin',     'cat': 'Profitability', 'fmt': 'percent'},
+    'operating_cash_flow':  {'name': 'Operating Cash Flow',   'cat': 'Cash Flow',     'fmt': 'currency'},
+    'free_cash_flow':       {'name': 'Free Cash Flow',        'cat': 'Cash Flow',     'fmt': 'currency'},
+    'total_purchases':      {'name': 'Total Purchases',       'cat': 'Cash Flow',     'fmt': 'currency'},
+    'total_expenses':       {'name': 'Total Expenses',        'cat': 'Cash Flow',     'fmt': 'currency'},
+    'current_ratio':        {'name': 'Current Ratio',         'cat': 'Liquidity',     'fmt': 'ratio'},
+    'quick_ratio':          {'name': 'Quick Ratio',           'cat': 'Liquidity',     'fmt': 'ratio'},
+    'working_capital':      {'name': 'Working Capital',       'cat': 'Liquidity',     'fmt': 'currency'},
+    'debt_to_equity':       {'name': 'Debt to Equity',        'cat': 'Liquidity',     'fmt': 'ratio'},
+    'asset_turnover':       {'name': 'Asset Turnover',        'cat': 'Efficiency',    'fmt': 'ratio'},
+    'inventory_turnover':   {'name': 'Inventory Turnover',    'cat': 'Efficiency',    'fmt': 'ratio'},
+    'days_sales_outstanding':{'name':'Days Sales Outstanding','cat': 'Efficiency',    'fmt': 'days'},
+    'return_on_assets':     {'name': 'Return on Assets',      'cat': 'Efficiency',    'fmt': 'percent'},
+    'return_on_equity':     {'name': 'Return on Equity',      'cat': 'Efficiency',    'fmt': 'percent'},
+    'customer_lifetime_value':   {'name': 'Customer LTV',     'cat': 'Customer',      'fmt': 'currency'},
+    'customer_acquisition_cost': {'name': 'Customer CAC',     'cat': 'Customer',      'fmt': 'currency'},
   };
 
   static const _green = Color(0xFF1a5c2e);
@@ -35,9 +37,11 @@ class KpiDashboardPage extends ConsumerWidget {
   String _fmt(double value, String type) {
     switch (type) {
       case 'currency':
-        if (value >= 1000000) return '₦${(value / 1000000).toStringAsFixed(2)}M';
-        if (value >= 1000)    return '₦${(value / 1000).toStringAsFixed(1)}K';
-        return '₦${value.toStringAsFixed(0)}';
+        final neg = value < 0 ? '-' : '';
+        final abs = value.abs();
+        if (abs >= 1000000) return '$neg₦${(abs / 1000000).toStringAsFixed(2)}M';
+        if (abs >= 1000)    return '$neg₦${(abs / 1000).toStringAsFixed(1)}K';
+        return '$neg₦${abs.toStringAsFixed(0)}';
       case 'percent': return '${value.toStringAsFixed(1)}%';
       case 'ratio':   return '${value.toStringAsFixed(2)}x';
       case 'days':    return '${value.toStringAsFixed(0)} days';
@@ -47,7 +51,9 @@ class KpiDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final kpiAsync = ref.watch(kpiValuesProvider);
+    final kpiAsync     = ref.watch(kpiValuesProvider);
+    final branchAsync  = ref.watch(branchesProvider);
+    final selectedBranch = ref.watch(selectedBranchProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -56,11 +62,48 @@ class KpiDashboardPage extends ConsumerWidget {
           // Top bar
           Container(
             color: _green,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: Row(
               children: [
                 const Text('KPI Dashboard',
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+                const SizedBox(width: 20),
+
+                // Branch dropdown
+                branchAsync.when(
+                  loading: () => const SizedBox(width: 160, child: LinearProgressIndicator()),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (branches) => Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: selectedBranch,
+                        dropdownColor: _green,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('All Branches', style: TextStyle(color: Colors.white)),
+                          ),
+                          ...branches.map((b) => DropdownMenuItem<String?>(
+                                value: b.id,
+                                child: Text(b.name, style: const TextStyle(color: Colors.white)),
+                              )),
+                        ],
+                        onChanged: (val) {
+                          ref.read(selectedBranchProvider.notifier).state = val;
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () => ref.invalidate(kpiValuesProvider),
@@ -141,11 +184,10 @@ class _KpiBodyState extends State<_KpiBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Summary cards
           Row(children: [
             _SummaryCard(
               label: 'Total Revenue',
-              value: rev != null ? widget.fmt(rev.value, 'currency') : '—',
+              value: rev != null ? widget.fmt(rev.value, 'currency') : '₦0',
               delta: rev?.deltaPct,
               icon: Icons.trending_up,
               iconColor: Colors.green,
@@ -154,7 +196,7 @@ class _KpiBodyState extends State<_KpiBody> {
             const SizedBox(width: 12),
             _SummaryCard(
               label: 'Net Profit',
-              value: profit != null ? widget.fmt(profit.value, 'currency') : '—',
+              value: profit != null ? widget.fmt(profit.value, 'currency') : '₦0',
               delta: profit?.deltaPct,
               icon: Icons.monetization_on_outlined,
               iconColor: Colors.blue,
@@ -163,7 +205,7 @@ class _KpiBodyState extends State<_KpiBody> {
             const SizedBox(width: 12),
             _SummaryCard(
               label: 'Operating Cash Flow',
-              value: cashflow != null ? widget.fmt(cashflow.value, 'currency') : '—',
+              value: cashflow != null ? widget.fmt(cashflow.value, 'currency') : '₦0',
               delta: cashflow?.deltaPct,
               icon: Icons.account_balance_wallet_outlined,
               iconColor: Colors.orange,
@@ -172,7 +214,6 @@ class _KpiBodyState extends State<_KpiBody> {
           ]),
           const SizedBox(height: 20),
 
-          // Category filter chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -194,7 +235,6 @@ class _KpiBodyState extends State<_KpiBody> {
           ),
           const SizedBox(height: 16),
 
-          // KPI grid grouped by category
           ..._buildGrouped(),
         ],
       ),
@@ -210,7 +250,7 @@ class _KpiBodyState extends State<_KpiBody> {
     if (grouped.isEmpty) {
       return [const Center(child: Padding(
         padding: EdgeInsets.all(40),
-        child: Text('No KPI data found.', style: TextStyle(color: Colors.grey)),
+        child: Text('No KPI data for this filter.', style: TextStyle(color: Colors.grey)),
       ))];
     }
     return grouped.entries.map((entry) => Column(
@@ -283,7 +323,7 @@ class _SummaryCard extends StatelessWidget {
               Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 2),
               Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-              if (delta != null)
+              if (delta != null && delta != 0)
                 Text(
                   '${delta! >= 0 ? '+' : ''}${delta!.toStringAsFixed(1)}% vs last period',
                   style: TextStyle(fontSize: 11,
@@ -317,7 +357,7 @@ class _KpiCard extends StatelessWidget {
           Text(name, style: const TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 6),
           Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-          if (delta != null) ...[
+          if (delta != null && delta != 0) ...[
             const SizedBox(height: 4),
             Row(children: [
               Icon(delta! >= 0 ? Icons.trending_up : Icons.trending_down,

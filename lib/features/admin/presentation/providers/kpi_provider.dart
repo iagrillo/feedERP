@@ -25,27 +25,41 @@ class KpiValue {
       );
 }
 
-// FeedERP fixed company ID
+class BranchInfo {
+  final String id;
+  final String name;
+  const BranchInfo({required this.id, required this.name});
+  factory BranchInfo.fromMap(Map<String, dynamic> m) => BranchInfo(
+        id:   m['id'] as String,
+        name: m['name'] as String,
+      );
+}
+
 const kFeedErpCompanyId = '00000000-0000-0000-0000-000000000001';
 
-final kpiValuesProvider = FutureProvider<List<KpiValue>>((ref) async {
+// Selected branch filter — null means all branches
+final selectedBranchProvider = StateProvider<String?>((ref) => null);
+
+// Fetch all branches for the dropdown
+final branchesProvider = FutureProvider<List<BranchInfo>>((ref) async {
   final client = ref.watch(supabaseClientProvider);
   final data = await client
-      .from('kpi_values')
-      .select('kpi_key, value, value_formatted, delta_pct, period')
-      .eq('company_id', kFeedErpCompanyId)
-      .order('kpi_key');
-  return (data as List).map((e) => KpiValue.fromMap(e)).toList();
+      .from('branches')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name');
+  return (data as List).map((e) => BranchInfo.fromMap(e)).toList();
 });
 
-// Refresh KPIs by recalculating from real transactions
-final kpiRefreshProvider = FutureProvider<void>((ref) async {
-  final client = ref.watch(supabaseClientProvider);
+// Compute KPIs from real transactions filtered by branch
+final kpiValuesProvider = FutureProvider<List<KpiValue>>((ref) async {
+  final client     = ref.watch(supabaseClientProvider);
+  final branchId   = ref.watch(selectedBranchProvider);
 
-  // Fetch totals from transactions
-  final txns = await client
-      .from('transactions')
-      .select('type, amount');
+  // Fetch transactions
+  var txnQuery = client.from('transactions').select('type, amount');
+  if (branchId != null) txnQuery = txnQuery.eq('branch_id', branchId);
+  final txns = await txnQuery;
 
   double totalSales    = 0;
   double totalExpenses = 0;
@@ -55,21 +69,23 @@ final kpiRefreshProvider = FutureProvider<void>((ref) async {
     if (t['type'] == 'expense') totalExpenses += amt;
   }
 
-  // Fetch delivered purchases
-  final purchasesData = await client
+  // Fetch purchases
+  var purchaseQuery = client
       .from('purchases')
       .select('total_amount')
       .eq('status', 'delivered');
+  if (branchId != null) purchaseQuery = purchaseQuery.eq('branch_id', branchId);
+  final purchasesData = await purchaseQuery;
 
   double totalPurchases = 0;
   for (final p in purchasesData) {
     totalPurchases += (p['total_amount'] as num).toDouble();
   }
 
-  final grossProfit    = totalSales - totalPurchases;
-  final netProfit      = totalSales - totalExpenses;
-  final grossMargin    = totalSales > 0 ? (grossProfit / totalSales) * 100 : 0.0;
-  final netMargin      = totalSales > 0 ? (netProfit   / totalSales) * 100 : 0.0;
+  final grossProfit  = totalSales - totalPurchases;
+  final netProfit    = totalSales - totalExpenses;
+  final grossMargin  = totalSales > 0 ? (grossProfit / totalSales) * 100 : 0.0;
+  final netMargin    = totalSales > 0 ? (netProfit   / totalSales) * 100 : 0.0;
 
   String fmtNaira(double v) {
     if (v.abs() >= 1000000) return '₦${(v / 1000000).toStringAsFixed(2)}M';
@@ -77,21 +93,15 @@ final kpiRefreshProvider = FutureProvider<void>((ref) async {
     return '₦${v.toStringAsFixed(0)}';
   }
 
-  final now = DateTime.now().toIso8601String().substring(0, 10);
-
-  final upserts = [
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'revenue_total_sales',  'value': totalSales,    'value_formatted': fmtNaira(totalSales),    'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'gross_profit',         'value': grossProfit,   'value_formatted': fmtNaira(grossProfit),   'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'gross_profit_margin',  'value': grossMargin,   'value_formatted': '${grossMargin.toStringAsFixed(1)}%',  'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'net_profit',           'value': netProfit,     'value_formatted': fmtNaira(netProfit),     'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'net_profit_margin',    'value': netMargin,     'value_formatted': '${netMargin.toStringAsFixed(1)}%',    'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'operating_cash_flow',  'value': netProfit,     'value_formatted': fmtNaira(netProfit),     'delta_pct': 0, 'period': now},
-    {'company_id': kFeedErpCompanyId, 'kpi_key': 'operating_profit',     'value': grossProfit,   'value_formatted': fmtNaira(grossProfit),   'delta_pct': 0, 'period': now},
+  return [
+    KpiValue(kpiKey: 'revenue_total_sales',  value: totalSales,    valueFormatted: fmtNaira(totalSales),                          deltaPct: 0),
+    KpiValue(kpiKey: 'gross_profit',         value: grossProfit,   valueFormatted: fmtNaira(grossProfit),                         deltaPct: 0),
+    KpiValue(kpiKey: 'gross_profit_margin',  value: grossMargin,   valueFormatted: '${grossMargin.toStringAsFixed(1)}%',          deltaPct: 0),
+    KpiValue(kpiKey: 'net_profit',           value: netProfit,     valueFormatted: fmtNaira(netProfit),                           deltaPct: 0),
+    KpiValue(kpiKey: 'net_profit_margin',    value: netMargin,     valueFormatted: '${netMargin.toStringAsFixed(1)}%',            deltaPct: 0),
+    KpiValue(kpiKey: 'operating_cash_flow',  value: netProfit,     valueFormatted: fmtNaira(netProfit),                           deltaPct: 0),
+    KpiValue(kpiKey: 'operating_profit',     value: grossProfit,   valueFormatted: fmtNaira(grossProfit),                         deltaPct: 0),
+    KpiValue(kpiKey: 'total_purchases',      value: totalPurchases,valueFormatted: fmtNaira(totalPurchases),                      deltaPct: 0),
+    KpiValue(kpiKey: 'total_expenses',       value: totalExpenses, valueFormatted: fmtNaira(totalExpenses),                       deltaPct: 0),
   ];
-
-  await client
-      .from('kpi_values')
-      .upsert(upserts, onConflict: 'company_id,kpi_key');
-
-  ref.invalidate(kpiValuesProvider);
 });

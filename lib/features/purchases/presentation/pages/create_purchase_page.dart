@@ -34,10 +34,15 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
   List<ProductModel> _products = [];
   bool _loading = false;
 
+  // Branch state for admin
+  List<Map<String, dynamic>> _branches = [];
+  String? _selectedBranchId;
+
   @override
   void initState() {
     super.initState();
     _loadProducts();
+    _loadBranches();
   }
 
   Future<void> _loadProducts() async {
@@ -47,9 +52,22 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     setState(() => _products = (data as List).map((e) => ProductModel.fromJson(e)).toList());
   }
 
+  Future<void> _loadBranches() async {
+    final client = ref.read(supabaseClientProvider);
+    final data = await client.from('branches').select().eq('is_active', true).order('name');
+    setState(() => _branches = (data as List).cast<Map<String, dynamic>>());
+  }
+
   double get _total => _items.fold(0, (s, i) => s + i.lineTotal);
 
   Future<void> _save() async {
+    final user = ref.read(authNotifierProvider).valueOrNull!;
+
+    if (user.isAdmin == true && _selectedBranchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a branch')));
+      return;
+    }
     if (_supplierCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Enter supplier name')));
@@ -63,11 +81,9 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
     setState(() => _loading = true);
     try {
       final client = ref.read(supabaseClientProvider);
-      final user   = ref.read(authNotifierProvider).valueOrNull!;
 
-      // Create purchase
       final result = await client.from(AppConstants.tablePurchases).insert({
-        'branch_id':      user.branchId,
+        'branch_id':      user.isAdmin == true ? _selectedBranchId : user.branchId,
         'supplier_name':  _supplierCtrl.text.trim(),
         'supplier_phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
         'invoice_ref':    _refCtrl.text.trim().isEmpty ? null : _refCtrl.text.trim(),
@@ -79,7 +95,6 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
 
       final purchaseId = result['id'] as String;
 
-      // Insert items
       for (final item in _items) {
         await client.from(AppConstants.tablePurchaseItems).insert({
           'purchase_id': purchaseId,
@@ -89,7 +104,6 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
         });
       }
 
-      // Confirm immediately
       await client.from(AppConstants.tablePurchases).update({
         'status':       'confirmed',
         'confirmed_by': user.id,
@@ -112,6 +126,7 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authNotifierProvider).valueOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Record Purchase')),
       body: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -131,6 +146,21 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
               Expanded(child: TextFormField(controller: _refCtrl,
                   decoration: const InputDecoration(labelText: 'Invoice Ref'))),
             ]),
+            if (user?.isAdmin == true) ...[
+              const SizedBox(height: 20),
+              const Text('Branch', style: TextStyle(fontWeight: FontWeight.bold,
+                  fontSize: 14, color: Color(0xFF1B5E20))),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedBranchId,
+                decoration: const InputDecoration(labelText: 'Select Branch *'),
+                items: _branches.map((b) => DropdownMenuItem(
+                  value: b['id'] as String,
+                  child: Text(b['name'] as String),
+                )).toList(),
+                onChanged: (v) => setState(() => _selectedBranchId = v),
+              ),
+            ],
             const SizedBox(height: 20),
             const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold,
                 fontSize: 14, color: Color(0xFF1B5E20))),
@@ -239,5 +269,3 @@ class _ItemAdderState extends State<_ItemAdder> {
     ]),
   ));
 }
-
-

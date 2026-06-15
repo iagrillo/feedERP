@@ -168,41 +168,53 @@ class _CreatePurchasePageState extends ConsumerState<CreatePurchasePage> {
                   decoration: const InputDecoration(labelText: 'Invoice Ref'))),
             ]),
 
-            // Destination — admin only
             if (user?.isAdmin == true) ...[
               const SizedBox(height: 24),
               const Text('Destination', style: TextStyle(
                   fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1B5E20))),
               const SizedBox(height: 8),
-              // Use Row of ChoiceChips instead of SegmentedButton to avoid overflow
               Row(children: [
-                Expanded(child: ChoiceChip(
-                  label: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.store, size: 16),
-                    SizedBox(width: 6),
-                    Text('Branch'),
-                  ]),
-                  selected: _destinationType == 'branch',
-                  onSelected: (_) => setState(() {
-                    _destinationType = 'branch';
-                    _selectedBranchId = null;
-                    _selectedWarehouseId = null;
-                  }),
-                )),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _destinationType == 'branch'
+                          ? const Color(0xFF1B5E20)
+                          : Colors.transparent,
+                      foregroundColor: _destinationType == 'branch'
+                          ? Colors.white
+                          : const Color(0xFF1B5E20),
+                      side: const BorderSide(color: Color(0xFF1B5E20)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => setState(() {
+                      _destinationType = 'branch';
+                      _selectedBranchId = null;
+                      _selectedWarehouseId = null;
+                    }),
+                    child: const Text('Branch'),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: ChoiceChip(
-                  label: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.warehouse, size: 16),
-                    SizedBox(width: 6),
-                    Text('Warehouse'),
-                  ]),
-                  selected: _destinationType == 'warehouse',
-                  onSelected: (_) => setState(() {
-                    _destinationType = 'warehouse';
-                    _selectedBranchId = null;
-                    _selectedWarehouseId = null;
-                  }),
-                )),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _destinationType == 'warehouse'
+                          ? const Color(0xFF1B5E20)
+                          : Colors.transparent,
+                      foregroundColor: _destinationType == 'warehouse'
+                          ? Colors.white
+                          : const Color(0xFF1B5E20),
+                      side: const BorderSide(color: Color(0xFF1B5E20)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => setState(() {
+                      _destinationType = 'warehouse';
+                      _selectedBranchId = null;
+                      _selectedWarehouseId = null;
+                    }),
+                    child: const Text('Warehouse'),
+                  ),
+                ),
               ]),
               const SizedBox(height: 12),
               if (_destinationType == 'branch')

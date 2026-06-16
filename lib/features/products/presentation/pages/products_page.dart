@@ -121,31 +121,34 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
           data:    (products) => products.isEmpty
               ? const Center(child: Text('No products yet'))
               : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    headingRowColor: WidgetStateProperty.all(
-                        Theme.of(context).colorScheme.primary.withOpacity(0.08)),
-                    columns: const [
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('SKU')),
-                      DataColumn(label: Text('Unit')),
-                      DataColumn(label: Text('Reorder Level'), numeric: true),
-                      DataColumn(label: Text('Status')),
-                    ],
-                    rows: products.map((p) => DataRow(cells: [
-                      DataCell(Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500))),
-                      DataCell(Text(p.sku ?? '')),
-                      DataCell(Text(p.unit)),
-                      DataCell(Text(p.reorderLevel.toStringAsFixed(0))),
-                      DataCell(Chip(
-                        label: Text(p.isActive ? 'Active' : 'Inactive',
-                            style: const TextStyle(fontSize: 11)),
-                        backgroundColor: p.isActive
-                            ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                      )),
-                    ])).toList(),
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStateProperty.all(
+                          Theme.of(context).colorScheme.primary.withOpacity(0.08)),
+                      columns: const [
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('SKU')),
+                        DataColumn(label: Text('Unit')),
+                        DataColumn(label: Text('Reorder Level'), numeric: true),
+                        DataColumn(label: Text('Status')),
+                      ],
+                      rows: products.map((p) => DataRow(cells: [
+                        DataCell(Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500))),
+                        DataCell(Text(p.sku ?? '')),
+                        DataCell(Text(p.unit)),
+                        DataCell(Text(p.reorderLevel.toStringAsFixed(0))),
+                        DataCell(Chip(
+                          label: Text(p.isActive ? 'Active' : 'Inactive',
+                              style: const TextStyle(fontSize: 11)),
+                          backgroundColor: p.isActive
+                              ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        )),
+                      ])).toList(),
+                    ),
                   ),
                 ),
         )),
@@ -153,5 +156,3 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     );
   }
 }
-
-

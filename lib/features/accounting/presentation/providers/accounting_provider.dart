@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:erp_app/core/constants/app_constants.dart';
 import 'package:erp_app/core/network/supabase_client.dart';
 import 'package:erp_app/features/accounting/domain/entities/transaction.dart';
@@ -7,7 +7,6 @@ import 'package:erp_app/features/accounting/domain/entities/transaction.dart';
 final transactionsStreamProvider =
     StreamProvider.family<List<LedgerTransaction>, String?>((ref, branchId) {
   final client = ref.watch(supabaseClientProvider);
-
   return client
       .from(AppConstants.tableTransactions)
       .stream(primaryKey: ['id'])
@@ -26,17 +25,25 @@ final transactionsStreamProvider =
           )).toList());
 });
 
-// Branch revenue summary
+// Branch revenue summary — sums across ALL branches when branchId is null
 final branchRevenueSummaryProvider = FutureProvider.family<Map<String, dynamic>, String?>((ref, branchId) async {
   final client = ref.watch(supabaseClientProvider);
   var query    = client.from(AppConstants.viewBranchRevenueSummary).select();
   if (branchId != null) query = query.eq('branch_id', branchId);
   final data   = await query;
+
   if (data.isEmpty) return {'total_income': 0.0, 'total_expense': 0.0, 'profit': 0.0};
-  final row    = data.first;
+
+  double totalIncome  = 0;
+  double totalExpense = 0;
+  for (final row in data) {
+    totalIncome  += (row['total_income']  as num?)?.toDouble() ?? 0;
+    totalExpense += (row['total_expense'] as num?)?.toDouble() ?? 0;
+  }
+
   return {
-    'total_income':   (row['total_income'] as num?)?.toDouble() ?? 0,
-    'total_expense':  (row['total_expense'] as num?)?.toDouble() ?? 0,
-    'profit':         (row['profit'] as num?)?.toDouble() ?? 0,
+    'total_income':  totalIncome,
+    'total_expense': totalExpense,
+    'profit':        totalIncome - totalExpense,
   };
 });

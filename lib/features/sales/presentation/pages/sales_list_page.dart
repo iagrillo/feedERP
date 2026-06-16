@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:erp_app/core/utils/formatters.dart';
 import 'package:erp_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:erp_app/features/sales/domain/entities/sale.dart';
 import 'package:erp_app/features/sales/presentation/providers/sales_provider.dart';
+import 'package:erp_app/features/sales/presentation/pages/sale_detail_page.dart';
 
 class SalesListPage extends ConsumerWidget {
   const SalesListPage({super.key});
@@ -66,6 +67,9 @@ class _SaleTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => SaleDetailPage(sale: sale)),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: statusColor.withOpacity(0.1),
